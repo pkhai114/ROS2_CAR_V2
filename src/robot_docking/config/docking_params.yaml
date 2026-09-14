@@ -1,0 +1,84 @@
+velocity_arbiter:
+  ros__parameters:
+    use_sim_time: false
+    nav_input_topic: /cmd_vel_nav_output
+    dock_input_topic: /cmd_vel_dock
+    output_topic: /cmd_vel
+    mode_command_topic: /velocity_arbiter/mode
+    mode_state_topic: /velocity_arbiter/state
+    publish_frequency: 20.0
+    source_timeout: 0.30
+    switch_hold_time: 0.15
+    default_mode: NAV2
+
+docking_controller:
+  ros__parameters:
+    use_sim_time: false
+    global_frame: map
+    base_frame: base_link
+    scan_topic: /scan/filtered
+    odom_topic: /odometry/filtered
+    command_topic: /docking/command
+    status_topic: /docking/status
+    dock_velocity_topic: /cmd_vel_dock
+    arbiter_mode_topic: /velocity_arbiter/mode
+    arbiter_state_topic: /velocity_arbiter/state
+
+    control_frequency: 20.0
+    sensor_timeout: 0.50
+    tf_timeout: 0.50
+    arbiter_timeout: 1.00
+    operation_timeout: 30.0
+
+    stop_linear_threshold: 0.015
+    stop_angular_threshold: 0.035
+    stop_stable_time: 0.50
+
+    # Nav2 phải đưa xe tới staging trước khi DOCK.
+    start_position_tolerance: 0.10
+    # UNDOCK chỉ được nhận khi xe đang ở gần dock_pose.
+    undock_start_position_tolerance: 0.14
+    start_yaw_tolerance_deg: 15.0
+    alignment_max_angular_speed: 0.15
+    alignment_timeout: 8.0
+    lookahead_distance: 0.10
+    forward_speed: 0.08
+    reverse_speed: 0.07
+    minimum_speed: 0.025
+    slowdown_distance: 0.18
+    linear_acceleration_limit: 0.20
+    angular_acceleration_limit: 0.60
+
+    heading_kp: 1.20
+    heading_kd: 0.12
+    derivative_filter_alpha: 0.30
+    yaw_kp: 1.40
+    maximum_angular_speed: 0.30
+    minimum_angular_speed: 0.055
+    drive_heading_limit_deg: 25.0
+
+    path_lateral_limit: 0.15
+    path_position_tolerance: 0.045
+    final_position_tolerance: 0.14
+    align_yaw_tolerance_deg: 3.0
+    final_yaw_tolerance_deg: 5.0
+    final_stable_time: 0.50
+    final_condition_timeout: 3.0
+
+    # TF base_link -> laser có yaw=-1.5708, nên hướng trước xe
+    # tương ứng góc +1.5708 trong LaserScan; hướng sau là -1.5708.
+    front_scan_angle: 1.57079632679
+    rear_scan_angle: -1.57079632679
+    scan_sector_half_width_deg: 10.0
+
+    # base_link tới đầu xe = 0.27 m, khe cuối = 0.10 m.
+    # LiDAR đặt x=0 so với base_link, nên khoảng đo danh định = 0.37 m.
+    target_front_distance: 0.37
+    front_distance_tolerance: 0.04
+    # Raised from 0.27: keep the threshold above the configured 0.30 m scan cutoff.
+    # This narrow-sector software check is NOT a full-footprint collision monitor.
+    front_hard_stop_distance: 0.33
+    front_distance_assist_window: 0.15
+
+    # Khi UNDOCK, dừng ngay nếu vùng phía sau có vật cản gần hơn 0.37 m.
+    rear_obstacle_stop_distance: 0.37

@@ -1,0 +1,26 @@
+station_manager_node:
+  ros__parameters:
+    use_sim_time: false
+    command_topic: /station/command
+    status_topic: /station/status
+    current_topic: /station/current
+    distance_remaining_topic: /station/distance_remaining
+    navigate_action: /navigate_to_pose
+    base_frame: base_link
+    odom_topic: /odometry/filtered
+    # Nav2 SUCCEEDED is necessary but not sufficient: also check TF and stop.
+    staging_position_tolerance: 0.10
+    staging_yaw_tolerance_deg: 5.0
+    staging_alignment_max_yaw_deg: 15.0
+    dock_position_tolerance: 0.14
+    dock_yaw_tolerance_deg: 5.0
+    stop_linear_threshold: 0.015
+    stop_angular_threshold: 0.035
+    stable_time: 0.80
+    sensor_timeout: 0.50
+    tf_timeout: 0.50
+    peer_timeout: 1.0
+    handoff_timeout: 5.0
+    settle_timeout: 8.0
+    navigation_timeout: 180.0
+    docking_timeout: 35.0

@@ -5,9 +5,14 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    GroupAction,
+    IncludeLaunchDescription,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import SetRemap
 
 
 def generate_launch_description():
@@ -45,49 +50,32 @@ def generate_launch_description():
     respawn = LaunchConfiguration('respawn')
     log_level = LaunchConfiguration('log_level')
 
-    return LaunchDescription([
-        DeclareLaunchArgument(
-            'map',
-            default_value=default_map,
-            description='Duong dan den file YAML cua ban do'
+    nav2_group = GroupAction([
+        # Tất cả output cmd_vel của Nav2 (velocity_smoother và behavior_server)
+        # đi vào một nhánh riêng. Chỉ velocity_arbiter được phát /cmd_vel.
+                # Controller -> đầu vào velocity_smoother
+        SetRemap(
+            src='controller_server:cmd_vel',
+            dst='/cmd_vel_nav',
         ),
 
-        DeclareLaunchArgument(
-            'params_file',
-            default_value=default_params_file,
-            description='Duong dan den file tham so Nav2'
+        # Đầu vào velocity_smoother
+        SetRemap(
+            src='velocity_smoother:cmd_vel',
+            dst='/cmd_vel_nav',
         ),
 
-        DeclareLaunchArgument(
-            'use_sim_time',
-            default_value='False',
-            description='Dung thoi gian mo phong'
+        # Đầu ra velocity_smoother -> arbiter
+        SetRemap(
+            src='velocity_smoother:cmd_vel_smoothed',
+            dst='/cmd_vel_nav_output',
         ),
 
-        DeclareLaunchArgument(
-            'autostart',
-            default_value='True',
-            description='Tu dong kich hoat cac lifecycle node'
+        # Vận tốc từ các behavior -> arbiter
+        SetRemap(
+            src='behavior_server:cmd_vel',
+            dst='/cmd_vel_nav_output',
         ),
-
-        DeclareLaunchArgument(
-            'use_composition',
-            default_value='False',
-            description='Chay Nav2 bang cac node rieng'
-        ),
-
-        DeclareLaunchArgument(
-            'respawn',
-            default_value='False',
-            description='Tu khoi dong lai node khi bi dung'
-        ),
-
-        DeclareLaunchArgument(
-            'log_level',
-            default_value='info',
-            description='Muc log cua Nav2'
-        ),
-
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(nav2_bringup_launch),
             launch_arguments={
@@ -102,5 +90,44 @@ def generate_launch_description():
                 'respawn': respawn,
                 'log_level': log_level,
             }.items()
-        )
+        ),
+    ])
+
+    return LaunchDescription([
+        DeclareLaunchArgument(
+            'map',
+            default_value=default_map,
+            description='Duong dan den file YAML cua ban do'
+        ),
+        DeclareLaunchArgument(
+            'params_file',
+            default_value=default_params_file,
+            description='Duong dan den file tham so Nav2'
+        ),
+        DeclareLaunchArgument(
+            'use_sim_time',
+            default_value='False',
+            description='Dung thoi gian mo phong'
+        ),
+        DeclareLaunchArgument(
+            'autostart',
+            default_value='True',
+            description='Tu dong kich hoat cac lifecycle node'
+        ),
+        DeclareLaunchArgument(
+            'use_composition',
+            default_value='False',
+            description='Chay Nav2 bang cac node rieng'
+        ),
+        DeclareLaunchArgument(
+            'respawn',
+            default_value='False',
+            description='Tu khoi dong lai node khi bi dung'
+        ),
+        DeclareLaunchArgument(
+            'log_level',
+            default_value='info',
+            description='Muc log cua Nav2'
+        ),
+        nav2_group,
     ])

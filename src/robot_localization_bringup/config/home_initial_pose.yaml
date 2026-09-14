@@ -1,0 +1,25 @@
+home_initial_pose_node:
+  ros__parameters:
+    # HOME chính là gốc Axes của frame map.
+    home_x: 0.0
+    home_y: 0.0
+
+    # Hướng cố định cũ của node:
+    # 0 rad = đầu xe hướng theo +X, trục đỏ.
+    home_yaw: 0.0
+
+    frame_id: map
+    output_topic: /initialpose
+
+    # Chờ sau khi phát hiện AMCL subscribe.
+    publish_delay_sec: 1.0
+
+    # Phương sai vị trí và góc ban đầu.
+    # 0.01 m² tương ứng độ lệch chuẩn 0.10 m.
+    covariance_x: 0.01
+    covariance_y: 0.01
+
+    # Xấp xỉ độ lệch chuẩn 5 độ.
+    covariance_yaw: 0.0076
+
+    use_sim_time: false
