@@ -10,9 +10,10 @@ from launch.actions import (
     GroupAction,
     IncludeLaunchDescription,
 )
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import SetRemap
+from launch_ros.actions import Node, SetRemap
 
 
 def generate_launch_description():
@@ -36,6 +37,12 @@ def generate_launch_description():
         'nav2_params.yaml'
     )
 
+    default_rviz_config = os.path.join(
+        package_dir,
+        'rviz',
+        'navigation.rviz'
+    )
+
     nav2_bringup_launch = os.path.join(
         nav2_bringup_dir,
         'launch',
@@ -49,11 +56,13 @@ def generate_launch_description():
     use_composition = LaunchConfiguration('use_composition')
     respawn = LaunchConfiguration('respawn')
     log_level = LaunchConfiguration('log_level')
+    rviz = LaunchConfiguration('rviz')
+    rviz_config = LaunchConfiguration('rviz_config')
 
     nav2_group = GroupAction([
         # Tất cả output cmd_vel của Nav2 (velocity_smoother và behavior_server)
         # đi vào một nhánh riêng. Chỉ velocity_arbiter được phát /cmd_vel.
-                # Controller -> đầu vào velocity_smoother
+        # Controller -> đầu vào velocity_smoother
         SetRemap(
             src='controller_server:cmd_vel',
             dst='/cmd_vel_nav',
@@ -93,6 +102,16 @@ def generate_launch_description():
         ),
     ])
 
+    rviz_node = Node(
+        condition=IfCondition(rviz),
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2_navigation',
+        output='screen',
+        arguments=['-d', rviz_config],
+        parameters=[{'use_sim_time': use_sim_time}],
+    )
+
     return LaunchDescription([
         DeclareLaunchArgument(
             'map',
@@ -129,5 +148,16 @@ def generate_launch_description():
             default_value='info',
             description='Muc log cua Nav2'
         ),
+        DeclareLaunchArgument(
+            'rviz',
+            default_value='True',
+            description='Mo RViz2 voi day du Navigation displays'
+        ),
+        DeclareLaunchArgument(
+            'rviz_config',
+            default_value=default_rviz_config,
+            description='Duong dan den file cau hinh RViz2'
+        ),
         nav2_group,
+        rviz_node,
     ])
